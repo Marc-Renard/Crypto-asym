@@ -1,0 +1,4 @@
+Pour réaliser un test :
+	make
+	./fp_poly_test
+	
