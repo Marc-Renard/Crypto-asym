@@ -221,7 +221,7 @@ int64_t inv_mod(int64_t a, int64_t p){
 
 
 //Division euclidienne : a = bq + r avec deg(r)<deg(b)
-void fp_poly_div(const fp_poly_t *a, const fp_poly_t *b, fp_poly_t **q, fp_poly_t **r){
+void fp_poly_div_euc(const fp_poly_t *a, const fp_poly_t *b, fp_poly_t **q, fp_poly_t **r){
 	if( a->carac != b->carac ){
 		fprintf(stderr, "Les coefficients des deux polynômes doivent être dans le même corps pour la division.\n");
 		return;
@@ -258,25 +258,81 @@ void fp_poly_div(const fp_poly_t *a, const fp_poly_t *b, fp_poly_t **q, fp_poly_
 			quotient[i_quotient] = 0;
 		}
 		i_quotient++;
+		if(deg_coef_dominant_a == 0){
+			break;
+		}
 		deg_coef_dominant_a--;
 	}
-
-	*q = fp_poly_init(diff, quotient, a->carac);
-
-	//On cherche le degré du reste
-	uint64_t deg_reste = deg_b;
-	while( (a_tab[ deg_a - deg_reste ] == 0) && (deg_reste>=0) ){
-		deg_reste--;
+	if(q != NULL){ //On s'assure que l'utilisateur a demandé à récupérer le quotient
+		*q = fp_poly_init(diff, quotient, a->carac);
 	}
-	if( (deg_reste == 0) && ( a_tab[deg_a] == 0 ) ){ //le reste est nul
-		uint64_t r_tab[1]={0};
-		*r = fp_poly_init(0,r_tab,a->carac);
+	if(r != NULL){ //On s'assure que l'utilisateur a demandé à récupérer le reste
+		//On cherche le degré du reste
+		uint64_t deg_reste = deg_b;
+		while( (a_tab[ deg_a - deg_reste ] == 0) && (deg_reste>0) ){
+			deg_reste--;
+		}
+		if( (deg_reste == 0) && ( a_tab[deg_a] == 0 ) ){ //le reste est nul
+			uint64_t r_tab[1]={0};
+			*r = fp_poly_init(0,r_tab,a->carac);
+			return;
+		}else{
+			uint64_t r_tab[deg_reste + 1];
+			memcpy(r_tab, &(a_tab[deg_a - deg_reste]), (deg_reste + 1) * sizeof(uint64_t));
+			*r = fp_poly_init(deg_reste, r_tab, a->carac);
+			return;
+		}
+	}else{
+		return;
+	}
+
+}
+// PGCD(a,b)
+void fp_poly_gcd(const fp_poly_t *a,const fp_poly_t *b, fp_poly_t **gcd){
+	if( a->carac != b->carac ){
+		fprintf(stderr, "Les coefficients des deux polynômes doivent être dans le même corps pour le pgcd.\n");
+		return;
+	}
+
+	uint64_t deg_a = a->degre;
+	uint64_t deg_b = b->degre;
+
+	uint64_t a_tab[deg_a + 1];
+	uint64_t b_tab[deg_b + 1];
+
+	memcpy(a_tab, a->coeffs, (deg_a + 1)*sizeof(uint64_t));
+	memcpy(b_tab, b->coeffs, (deg_b + 1)*sizeof(uint64_t));
+
+	fp_poly_t *p1;
+	fp_poly_t *p2;
+
+	if(deg_a >= deg_b){
+		p1 = fp_poly_init(deg_a, a_tab, a->carac);
+		p2 = fp_poly_init(deg_b, b_tab, b->carac);
+	}else{
+		p2 = fp_poly_init(deg_a, a_tab, a->carac);
+		p1 = fp_poly_init(deg_b, b_tab, b->carac);
+	}
+	
+	if( (p2->degre == 0) && (p2->coeffs[0] == 0) ){ //alors le pgcd est p1
+		uint64_t gcd_tab[p1->degre + 1];
+		memcpy(gcd_tab, p1->coeffs, (p1->degre + 1)*sizeof(uint64_t));
+		if(gcd_tab[0]>1){ //on va rendre le polynôme unitaire. (Normalement il est non nul donc != 1 suffirait)
+			uint64_t inv_unit = inv_mod(gcd_tab[0], a->carac);
+			for(uint64_t i = 0; i <= p1->degre ; i++ ){
+				gcd_tab[i] = ( gcd_tab[i] * inv_unit ) % ( a->carac );
+			}
+		}
+		*gcd = fp_poly_init(p1->degre,gcd_tab,p1->carac);
+		fp_poly_free(p1);
+		fp_poly_free(p2);
 		return;
 	}else{
-		uint64_t r_tab[deg_reste + 1];
-		memcpy(r_tab, &(a_tab[deg_a - deg_reste]), (deg_reste + 1) * sizeof(uint64_t));
-		*r = fp_poly_init(deg_reste, r_tab, a->carac);
-		return;
+		fp_poly_t *reste;
+		fp_poly_div_euc(p1,p2,NULL,&reste); //Division euclidienne pour ensuite remplacer p1 par p2, et p2 par le reste de p1/p2
+		fp_poly_gcd(p2, reste, gcd);
+		fp_poly_free(p1);
+		fp_poly_free(p2);
+		fp_poly_free(reste);
 	}
-
 }

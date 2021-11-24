@@ -14,15 +14,15 @@ int main(int agrc, char **argv)
 	fp_poly_print(p,'X',stdout);
 	
 	
-	uint64_t b[2] = {1,2};
-	fp_poly_t *q = fp_poly_init(1, b, carac);
+	uint64_t b[6] = {3,0,0,0,1,3};
+	fp_poly_t *q = fp_poly_init(5, b, carac);
 	if( q == NULL){
 		fprintf(stderr, "Erreur initialisation\n");
 		return -1;
 	}
 	
-	uint64_t c[3] = {1,2,4};
-	fp_poly_t *r = fp_poly_init(2, c, carac);
+	uint64_t c[4] = {4,4,0,1};
+	fp_poly_t *r = fp_poly_init(3, c, carac);
 	fp_poly_print(r,'X',stdout);
 
 	//###############################################################################################
@@ -88,14 +88,14 @@ int main(int agrc, char **argv)
 
 	//###############################################################################################
 
-	uint64_t poly_div[6] = {4,3,0,1,0,2};
-	fp_poly_t *p_div = fp_poly_init(5,poly_div, carac);
-	uint64_t poly_div2[4] = {3,0,2,4};
-	fp_poly_t *p_div2 = fp_poly_init(3,poly_div2, carac);
+	uint64_t poly_div[7] = {3,3,0,2,1,4,4};
+	fp_poly_t *p_div = fp_poly_init(6,poly_div, carac);
+	uint64_t poly_div2[3] = {1,1,1};
+	fp_poly_t *p_div2 = fp_poly_init(2,poly_div2, carac);
 
 	fp_poly_t *quotient = NULL;
 	fp_poly_t *reste = NULL;
-	fp_poly_div(p_div, p_div2, &quotient, &reste);
+	fp_poly_div_euc(p_div, p_div2, &quotient, &reste);
 
 	printf("\n######### Test de la division Euclidienne ########\n");
 	fp_poly_print(p_div,'X',stdout);
@@ -110,8 +110,25 @@ int main(int agrc, char **argv)
 
 	
 	
+	//###############################################################################################
 
+	uint64_t poly_euc1[8] = {4,2,2,0,3,3,1,2};
+	fp_poly_t *p_euc1 = fp_poly_init(7,poly_euc1, carac);
+	uint64_t poly_euc2[9] = {2,2,0,3,4,1,2,1,3};
+	fp_poly_t *p_euc2 = fp_poly_init(8,poly_euc2, carac);
 
+	fp_poly_t *gcd = NULL;
+	fp_poly_gcd(p_euc1, p_euc2, &gcd);
+
+	printf("\n######### Test de l'algorithme d'Euclide / PGCD ########\n");
+
+	printf("Le PGCD de :\n");
+	fp_poly_print(p_euc1,'X',stdout);
+	printf("et\n");
+	fp_poly_print(p_euc2,'X',stdout);
+
+	printf("est\n");
+	fp_poly_print(gcd,'X',stdout);
 
 
 
@@ -126,5 +143,8 @@ int main(int agrc, char **argv)
 	fp_poly_free(reste);
 	fp_poly_free(p_div);
 	fp_poly_free(p_div2);
+	fp_poly_free(p_euc1);
+	fp_poly_free(p_euc2);
+	fp_poly_free(gcd);
 	return 0;
 }
