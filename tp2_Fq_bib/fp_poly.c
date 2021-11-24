@@ -1,12 +1,7 @@
 #include <fp_poly.h>
 #include <string.h>
 
-void fp_poly_free(fp_poly_t* p)
-{
-	free(p->coeffs);
-	free(p);
-	return;
-}
+
 
 fp_poly_t *fp_poly_init(uint64_t degre, uint64_t* coeffs, uint64_t carac)
 {
@@ -21,6 +16,13 @@ fp_poly_t *fp_poly_init(uint64_t degre, uint64_t* coeffs, uint64_t carac)
 	p->coeffs = tab;
 	p->carac = carac;
 	return p;
+}
+
+void fp_poly_free(fp_poly_t* p)
+{
+	free(p->coeffs);
+	free(p);
+	return;
 }
 
 int fp_poly_print(fp_poly_t *p, char var, FILE * os){
@@ -73,8 +75,6 @@ int fp_poly_print(fp_poly_t *p, char var, FILE * os){
 	if( p->coeffs[deg] ){ // coefficient constant non nul
 		fprintf(os," + %ld", p->coeffs[deg]);
 	}
-	
-	fprintf(os,"\n\n");
 	return 0;
 }
 
@@ -335,4 +335,50 @@ void fp_poly_gcd(const fp_poly_t *a,const fp_poly_t *b, fp_poly_t **gcd){
 		fp_poly_free(p2);
 		fp_poly_free(reste);
 	}
+}
+
+
+
+fq_poly_t *fq_poly_init(fp_poly_t *p, fp_poly_t *mod){
+	if( p->carac != mod->carac ){
+		fprintf(stderr, "Les coefficients des deux polynômes doivent être dans le même corps.\n");
+		return NULL;
+	}
+	
+	fq_poly_t *poly_q = calloc( 1, sizeof(fq_poly_t) );
+	
+	if(poly_q == NULL)
+	{
+		return NULL;
+	}
+
+	uint64_t *tab_poly = calloc( (p->degre + 1) , sizeof(uint64_t) );
+	memcpy(tab_poly, p->coeffs, (p->degre + 1)  * sizeof(uint64_t));
+	poly_q->poly = fp_poly_init(p->degre, tab_poly, p->carac);
+	if(poly_q->poly == NULL){
+		fprintf(stderr,"Erreur initialisation du fp_poly_t poly dans un fq_poly_t");
+	}
+
+	uint64_t *tab_mod = calloc( (mod->degre + 1) , sizeof(uint64_t) );
+	memcpy(tab_mod, mod->coeffs, (mod->degre + 1)  * sizeof(uint64_t));
+	poly_q->mod = fp_poly_init(mod->degre, tab_mod, mod->carac);
+	if(poly_q->poly == NULL){
+		fprintf(stderr,"Erreur initialisation du fp_poly_t mod dans un fq_poly_t");
+	}
+
+	return poly_q;
+}
+
+void fq_poly_free(fq_poly_t *p){
+	fp_poly_free(p->poly);
+	fp_poly_free(p->mod);
+	free(p);
+	return;
+}
+
+void fq_poly_print(fq_poly_t *p, char var , FILE *os){
+	fp_poly_print(p->poly, var, os);
+	fprintf(os, " MOD ");
+	fp_poly_print(p->mod, var, os);
+	return;
 }

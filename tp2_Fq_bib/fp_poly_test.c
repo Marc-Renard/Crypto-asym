@@ -28,14 +28,14 @@ int main(int agrc, char **argv)
 	//###############################################################################################
 
 	
-	printf("\n######## Test de la multiplication ########\n");	
+	printf("\n\n######## Test de la multiplication ########\n");	
 	fp_poly_t *prod = fp_poly_mul(q,r);
 	
-	printf("La multiplication dans F_%ld[X] de\n", carac);
+	printf("La multiplication dans F_%ld[X] de\n\n", carac);
 	fp_poly_print(q,'X',stdout);
-	printf("par\n");
+	printf("\npar\n");
 	fp_poly_print(r,'X',stdout);
-	printf("donne\n");
+	printf("\n\ndonne:\n");
 	if( prod == NULL ){
 		fprintf(stderr,"Erreur lors de la multiplication\n");
 		return -1;
@@ -48,12 +48,12 @@ int main(int agrc, char **argv)
 
 	fp_poly_t *sum = fp_poly_add(prod, r);
 
-	printf("\n######### Test de l'addition ########\n");
-	printf("L'addition dans F_%ld[X] de\n", carac);
+	printf("\n\n######### Test de l'addition ########\n");
+	printf("L'addition dans F_%ld[X] de\n\n", carac);
 	fp_poly_print(prod,'X',stdout);
-	printf("et\n");
+	printf("\net\n");
 	fp_poly_print(r,'X',stdout);
-	printf("donne\n");
+	printf("\n\ndonne:\n");
 	if( sum == NULL ){
 		fprintf(stderr,"Erreur lors de l'addition\n");
 		return -1;
@@ -65,12 +65,12 @@ int main(int agrc, char **argv)
 
 	fp_poly_t *diff = fp_poly_sub(r, p);
 
-	printf("\n######### Test de la soustraction ########\n");
-	printf("La soustraction dans F_%ld[X] de\n", carac);
+	printf("\n\n######### Test de la soustraction ########\n");
+	printf("La soustraction dans F_%ld[X]\n", carac);
 	fp_poly_print(r,'X',stdout);
-	printf("-\n\n");
+	printf("\n-\n");
 	fp_poly_print(p,'X',stdout);
-	printf("donne\n\n");
+	printf("\n\ndonne:\n");
 	if( diff == NULL ){
 		fprintf(stderr,"Erreur lors de la soustraction\n");
 		return -1;
@@ -80,7 +80,7 @@ int main(int agrc, char **argv)
 	
 
 	//####################################################################################
-	printf("\n######### Test de l'inverse de a mod p ########\n");
+	printf("\n\n######### Test de l'inverse de a mod p ########\n");
 	int64_t aa = 3, mod = 13;
 	int64_t inv = inv_mod( aa, mod);
 	printf("Inv de %ld mod %ld --> %ld\n",aa,mod,inv);
@@ -99,13 +99,13 @@ int main(int agrc, char **argv)
 
 	printf("\n######### Test de la division Euclidienne ########\n");
 	fp_poly_print(p_div,'X',stdout);
-	printf("divisé par\n\n");
+	printf("\ndivisé par\n");
 	fp_poly_print(p_div2,'X',stdout);
 
-	printf("donne\n\nReste:\n");
+	printf("\n\ndonne\n\nReste:\n");
 	fp_poly_print(reste,'X',stdout);
 
-	printf("Qutient:\n");
+	printf("\nQutient:\n");
 	fp_poly_print(quotient,'X',stdout);
 
 	
@@ -120,18 +120,30 @@ int main(int agrc, char **argv)
 	fp_poly_t *gcd = NULL;
 	fp_poly_gcd(p_euc1, p_euc2, &gcd);
 
-	printf("\n######### Test de l'algorithme d'Euclide / PGCD ########\n");
+	printf("\n\n######### Test de l'algorithme d'Euclide / PGCD ########\n");
 
-	printf("Le PGCD de :\n");
+	printf("Le PGCD de :\n\n");
 	fp_poly_print(p_euc1,'X',stdout);
-	printf("et\n");
+	printf("\net\n");
 	fp_poly_print(p_euc2,'X',stdout);
 
-	printf("est\n");
+	printf("\n\nest:\n");
 	fp_poly_print(gcd,'X',stdout);
 
 
+	//###############################################################################################
 
+	//X^5+4x+1 irréductible sur F5[X]
+	uint64_t modulo[6] = {1,0,0,0,4,1};
+	fp_poly_t *pmod = fp_poly_init(5, modulo, carac);
+	uint64_t fq_pol_tab[3]={1,4,3};
+	fp_poly_t *fq_pol = fp_poly_init(2, fq_pol_tab, carac);
+
+	fq_poly_t *pol_fq = fq_poly_init(fq_pol, pmod);
+
+	printf("\n\n######### Test de fq_poly_print ########\n");
+
+	fq_poly_print(pol_fq,'X', stdout);
 
 	fp_poly_free(p);
 	fp_poly_free(q);
@@ -146,5 +158,11 @@ int main(int agrc, char **argv)
 	fp_poly_free(p_euc1);
 	fp_poly_free(p_euc2);
 	fp_poly_free(gcd);
+	fp_poly_free(pmod);
+	fp_poly_free(fq_pol);
+
+	//fq_poly_free(pol_fq);
+
+	fprintf(stdout,"\n");
 	return 0;
 }
