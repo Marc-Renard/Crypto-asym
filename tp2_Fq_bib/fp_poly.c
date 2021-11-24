@@ -365,7 +365,8 @@ fq_poly_t *fq_poly_init(fp_poly_t *p, fp_poly_t *mod){
 	if(poly_q->poly == NULL){
 		fprintf(stderr,"Erreur initialisation du fp_poly_t mod dans un fq_poly_t");
 	}
-
+	free(tab_poly);
+	free(tab_mod);
 	return poly_q;
 }
 

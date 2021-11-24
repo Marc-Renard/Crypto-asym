@@ -161,7 +161,7 @@ int main(int agrc, char **argv)
 	fp_poly_free(pmod);
 	fp_poly_free(fq_pol);
 
-	//fq_poly_free(pol_fq);
+	fq_poly_free(pol_fq);
 
 	fprintf(stdout,"\n");
 	return 0;
