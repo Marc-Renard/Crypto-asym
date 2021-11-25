@@ -42,6 +42,10 @@ void fq_poly_free(fq_poly_t *);
 
 void fq_poly_print(fq_poly_t *,char ,FILE *);
 
+int fp_poly_is_equal(const fp_poly_t *, const fp_poly_t *);
+
+fq_poly_t *fq_poly_mul(const fq_poly_t *, const fq_poly_t *);
+
 
 
 #endif /*FP_POLY_H*/

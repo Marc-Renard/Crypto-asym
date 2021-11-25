@@ -133,17 +133,38 @@ int main(int agrc, char **argv)
 
 	//###############################################################################################
 
+	printf("\n\n######### Test de fq_poly_print ########\n");
+
 	//X^5+4x+1 irréductible sur F5[X]
 	uint64_t modulo[6] = {1,0,0,0,4,1};
 	fp_poly_t *pmod = fp_poly_init(5, modulo, carac);
 	uint64_t fq_pol_tab[3]={1,4,3};
 	fp_poly_t *fq_pol = fp_poly_init(2, fq_pol_tab, carac);
 
+
 	fq_poly_t *pol_fq = fq_poly_init(fq_pol, pmod);
 
-	printf("\n\n######### Test de fq_poly_print ########\n");
+
 
 	fq_poly_print(pol_fq,'X', stdout);
+
+	//###############################################################################################
+
+	printf("\n\n######### Test de fq_poly_mul ########\n");
+
+	uint64_t fq_pol_tab2[5] = {3,1,2,0,4};
+	fp_poly_t *fq_pol2 = fp_poly_init(4, fq_pol_tab2, carac);
+
+	fq_poly_t *pol_fq2 = fq_poly_init(fq_pol2, pmod);
+
+	fq_poly_t *multi = fq_poly_mul(pol_fq, pol_fq2);
+
+	printf("La multiplication de :\n");
+	fq_poly_print(pol_fq, 'X', stdout);
+	printf("\npar:\n");
+	fq_poly_print(pol_fq2, 'X', stdout);
+	printf("\ndonne :\n");
+	fq_poly_print(multi, 'X', stdout);
 
 	fp_poly_free(p);
 	fp_poly_free(q);
@@ -158,10 +179,15 @@ int main(int agrc, char **argv)
 	fp_poly_free(p_euc1);
 	fp_poly_free(p_euc2);
 	fp_poly_free(gcd);
+
 	fp_poly_free(pmod);
 	fp_poly_free(fq_pol);
+	fp_poly_free(fq_pol2);
+
 
 	fq_poly_free(pol_fq);
+	fq_poly_free(pol_fq2);
+	fq_poly_free(multi);
 
 	fprintf(stdout,"\n");
 	return 0;

@@ -383,3 +383,33 @@ void fq_poly_print(fq_poly_t *p, char var , FILE *os){
 	fp_poly_print(p->mod, var, os);
 	return;
 }
+
+int fp_poly_is_equal(const fp_poly_t *p1, const fp_poly_t *p2){
+	if( p1->carac != p2->carac ){
+		return 0;
+	}
+	//Les polynômes vivent dans le même espace
+	if( p1->degre != p2->degre ){
+		return 0;
+	}
+	//Il sont le même degré
+	for(uint64_t i=0 ; i <= p1->degre ; i++ ){
+		if(p1->coeffs[i] != p2->coeffs[i]){
+			return 0;
+		}
+	}
+	//Les coefficients coïncidents
+	return 1;
+}
+
+fq_poly_t *fq_poly_mul(const fq_poly_t *p1, const fq_poly_t *p2){
+	if( !fp_poly_is_equal( p1->mod , p2->mod ) ){
+		fprintf(stderr, "Les polynômes ne sont pas dans le même corps\n");
+	}
+	fp_poly_t *mul = fp_poly_mul(p1->poly, p2->poly);
+	fp_poly_t *reste = NULL;
+	fp_poly_div_euc(mul, p1->mod, NULL, &reste);
+	fp_poly_free(mul); //ce polynôme n'etait qu'une étape intermédiaire, il ne sert plus
+	fq_poly_t *res = fq_poly_init(reste, p1->mod);
+	return res;
+}
