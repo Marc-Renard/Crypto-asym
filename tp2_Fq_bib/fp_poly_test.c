@@ -166,6 +166,29 @@ int main(int agrc, char **argv)
 	printf("\ndonne :\n");
 	fq_poly_print(multi, 'X', stdout);
 
+	//###############################################################################################
+
+	printf("\n\n######### Test de fq_poly_inv ########\n");
+
+	uint64_t test_inv_tab[5] = {4,2,0,1,4};
+	fp_poly_t *test_inv_pol = fp_poly_init(4, test_inv_tab, carac);
+	fq_poly_t *test_inv_fq = fq_poly_init(test_inv_pol, pmod);
+
+
+	fq_poly_t *invert = fq_poly_inv(test_inv_fq);
+
+	printf("L'inverse de :\n");
+	fq_poly_print(test_inv_fq, 'X', stdout);
+	printf("\nest :\n");
+	fq_poly_print(invert, 'X', stdout);
+
+	fq_poly_t *verif = fq_poly_mul(test_inv_fq, invert);
+
+	printf("\nVérification :\n");
+	fq_poly_print(verif, 'X', stdout);
+
+
+
 	fp_poly_free(p);
 	fp_poly_free(q);
 	fp_poly_free(r);
@@ -188,6 +211,11 @@ int main(int agrc, char **argv)
 	fq_poly_free(pol_fq);
 	fq_poly_free(pol_fq2);
 	fq_poly_free(multi);
+
+	fp_poly_free(test_inv_pol);
+	fq_poly_free(test_inv_fq);
+	fq_poly_free(invert);
+	fq_poly_free(verif);
 
 	fprintf(stdout,"\n");
 	return 0;

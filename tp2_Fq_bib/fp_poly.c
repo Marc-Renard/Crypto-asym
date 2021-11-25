@@ -32,7 +32,7 @@ int fp_poly_print(fp_poly_t *p, char var, FILE * os){
 		return 0;
 	}
 	if( deg == 0 ){
-		fprintf(os, "%ld\n\n", p->coeffs[0]);
+		fprintf(os, "%ld ", p->coeffs[0]);
 		return 0; 
 	}
 	//Le terme de plaut haut degre n'a pas de + devant lui, c'est pourquoi il est traité à part
@@ -84,6 +84,10 @@ fp_poly_t *fp_poly_mul(const fp_poly_t *p,const  fp_poly_t *q)
 	if( p->carac != q->carac){
 		fprintf(stderr,"Les polyomes doivent être dans le même corps, et donc avoir la même caractérisqtique\n");
 		return NULL;
+	}
+	if(  ( (p->degre == 0) && (p->coeffs[0] == 0) )  ||  ( (q->degre == 0) && ( q->coeffs[0] == 0 ) )  ){
+		uint64_t nul[1]={0};
+		return fp_poly_init(0, nul, p->carac);
 	}
 	uint64_t deg = p->degre + q->degre;
 	uint64_t c[ deg + 1 ];
@@ -213,9 +217,6 @@ int64_t inv_mod(int64_t a, int64_t p){
 		u1 = u_tmp - q * u1;
 	}
 	return (u0 + p)%p;
-
-
-
 }
 
 
@@ -229,9 +230,13 @@ void fp_poly_div_euc(const fp_poly_t *a, const fp_poly_t *b, fp_poly_t **q, fp_p
 	uint64_t deg_a = a->degre;
 	uint64_t deg_b = b->degre;
 	if(deg_a < deg_b){
-		*r = fp_poly_init(a->degre,a->coeffs, a->carac);
-		uint64_t tab[1] = {0};
-		*q = fp_poly_init(0, tab, a->carac);
+		if( r != NULL ){
+			*r = fp_poly_init(a->degre,a->coeffs, a->carac);
+		}
+		if( q != NULL ){
+			uint64_t tab[1] = {0};
+			*q = fp_poly_init(0, tab, a->carac);
+		}
 		return;
 	}
 	//Ici deg a >= deg b
@@ -339,7 +344,7 @@ void fp_poly_gcd(const fp_poly_t *a,const fp_poly_t *b, fp_poly_t **gcd){
 
 
 
-fq_poly_t *fq_poly_init(fp_poly_t *p, fp_poly_t *mod){
+fq_poly_t *fq_poly_init(const fp_poly_t *p,const fp_poly_t *mod){
 	if( p->carac != mod->carac ){
 		fprintf(stderr, "Les coefficients des deux polynômes doivent être dans le même corps.\n");
 		return NULL;
@@ -351,10 +356,13 @@ fq_poly_t *fq_poly_init(fp_poly_t *p, fp_poly_t *mod){
 	{
 		return NULL;
 	}
-
+	/*
 	uint64_t *tab_poly = calloc( (p->degre + 1) , sizeof(uint64_t) );
 	memcpy(tab_poly, p->coeffs, (p->degre + 1)  * sizeof(uint64_t));
 	poly_q->poly = fp_poly_init(p->degre, tab_poly, p->carac);
+	*/
+	fp_poly_div_euc(p, mod, NULL, &(poly_q->poly));
+
 	if(poly_q->poly == NULL){
 		fprintf(stderr,"Erreur initialisation du fp_poly_t poly dans un fq_poly_t");
 	}
@@ -365,7 +373,7 @@ fq_poly_t *fq_poly_init(fp_poly_t *p, fp_poly_t *mod){
 	if(poly_q->poly == NULL){
 		fprintf(stderr,"Erreur initialisation du fp_poly_t mod dans un fq_poly_t");
 	}
-	free(tab_poly);
+	//free(tab_poly);
 	free(tab_mod);
 	return poly_q;
 }
@@ -411,5 +419,93 @@ fq_poly_t *fq_poly_mul(const fq_poly_t *p1, const fq_poly_t *p2){
 	fp_poly_div_euc(mul, p1->mod, NULL, &reste);
 	fp_poly_free(mul); //ce polynôme n'etait qu'une étape intermédiaire, il ne sert plus
 	fq_poly_t *res = fq_poly_init(reste, p1->mod);
+	fp_poly_free(reste);
 	return res;
 }
+
+fq_poly_t *fq_poly_inv(const fq_poly_t *p){
+	if( (p->poly->degre == 0) && (p->poly->coeffs[0] == 0) ){
+		fprintf(stderr, "0 n'a pas d'inverse\n");
+		return NULL;
+	}
+	uint64_t u0_tab[1] = {1};
+	uint64_t u1_tab[1] = {0};
+	fp_poly_t *u0 = fp_poly_init(0,u0_tab, p->poly->carac);
+	fp_poly_t *u1 = fp_poly_init(0,u1_tab, p->poly->carac);
+	fp_poly_t *u_tmp = NULL;
+
+	//Il faut faire une copie ici et non pas récupérer l'adresse, sinon on va libérer les zones mémoires qui les ocntiennent dans l'algorithme d'euclide
+	uint64_t r0_tab[p->poly->degre + 1 ];
+	memcpy(r0_tab, p->poly->coeffs, ( p->poly->degre + 1 ) * sizeof(uint64_t)  );
+	fp_poly_t *r0 = fp_poly_init( p->poly->degre, r0_tab, p->poly->carac );
+
+
+	uint64_t r1_tab[p->mod->degre + 1 ];
+	memcpy(r1_tab, p->mod->coeffs, ( p->mod->degre + 1 ) * sizeof(uint64_t)  );
+	fp_poly_t *r1 = fp_poly_init( p->mod->degre, r1_tab, p->mod->carac );
+
+
+	fp_poly_t *r_tmp = NULL;
+	fp_poly_t *tmp2 = NULL;
+	fp_poly_t *q =NULL;
+	
+	while( (r1->degre != 0 ) && (r1->coeffs[0] != 0 )){
+		//q=r0/r1
+		fp_poly_div_euc(r0, r1, &q, NULL);
+
+		r_tmp = r0;
+		u_tmp = u0;
+		r0 = r1;
+		u0 = u1;
+
+		//r1 = r_tmp - q * r1
+		tmp2 = fp_poly_mul(q, r1);
+		r1 = fp_poly_sub(r_tmp, tmp2);
+		fp_poly_free(tmp2);
+		
+		//u1 = u_tmp - q * u1
+		tmp2 = fp_poly_mul(q, u1);
+		u1 = fp_poly_sub(u_tmp, tmp2);
+		fp_poly_free(tmp2);
+
+		fp_poly_free(u_tmp);
+		fp_poly_free(r_tmp);
+		
+		fp_poly_free(q);
+	}
+	
+	if( u1->coeffs[0] != 1 ){
+		int64_t correc = inv_mod(u1->coeffs[0], u1->carac);
+		for(uint64_t i = 0; i <= u1->degre ; i++){
+			u1->coeffs[i] = ( u1->coeffs[i] * correc ) % u1->carac;
+		}
+
+	}
+	
+
+	fq_poly_t *inv = fq_poly_init(u1, p->mod);
+
+	fp_poly_free(u0);
+	fp_poly_free(u1);
+	fp_poly_free(r0);
+	fp_poly_free(r1);
+
+
+	return inv;
+}
+/*
+int64_t inv_mod(int64_t a, int64_t p){
+	int64_t u0 = 1, u1 = 0, r0 = a, r1 = p;
+	int64_t u_tmp, r_tmp, q;
+	while(r1 != 0){
+		q = r0 / r1;
+		r_tmp = r0;
+		u_tmp = u0;
+		r0 = r1;
+		u0 = u1;
+		r1 = r_tmp - q * r1;
+		u1 = u_tmp - q * u1;
+	}
+	return (u0 + p)%p;
+}
+*/
