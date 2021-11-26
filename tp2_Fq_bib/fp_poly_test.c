@@ -81,9 +81,11 @@ int main(int agrc, char **argv)
 
 	//####################################################################################
 	printf("\n\n######### Test de l'inverse de a mod p ########\n");
-	int64_t aa = 3, mod = 13;
-	int64_t inv = inv_mod( aa, mod);
-	printf("Inv de %ld mod %ld --> %ld\n",aa,mod,inv);
+	int64_t mod = 13;
+	for(int64_t i = 1; i < mod; i++){
+		printf("Inv de %ld mod %ld --> %ld\n",i,mod,inv_mod(i,mod));
+	}
+	
 
 
 	//###############################################################################################
@@ -170,8 +172,8 @@ int main(int agrc, char **argv)
 
 	printf("\n\n######### Test de fq_poly_inv ########\n");
 
-	uint64_t test_inv_tab[5] = {4,2,0,1,4};
-	fp_poly_t *test_inv_pol = fp_poly_init(4, test_inv_tab, carac);
+	uint64_t test_inv_tab[3] = {2,4,4};
+	fp_poly_t *test_inv_pol = fp_poly_init(2, test_inv_tab, carac);
 	fq_poly_t *test_inv_fq = fq_poly_init(test_inv_pol, pmod);
 
 
@@ -184,9 +186,54 @@ int main(int agrc, char **argv)
 
 	fq_poly_t *verif = fq_poly_mul(test_inv_fq, invert);
 
-	printf("\nVérification :\n");
+	printf("\nVérification : le produit donne :\n");
 	fq_poly_print(verif, 'X', stdout);
 
+
+	//###############################################################################################
+
+	printf("\n\n######### Test de fq_poly_div ########\n");
+
+	uint64_t test_div_tab[3] = {4,2,1};
+	fp_poly_t *test_div_pol = fp_poly_init(2, test_div_tab, carac);
+	fq_poly_t *test_div_fq = fq_poly_init(test_div_pol, pmod);
+
+	uint64_t test_div_tab2[4] = {3,2,0,1};
+	fp_poly_t *test_div_pol2 = fp_poly_init(3, test_div_tab2, carac);
+	fq_poly_t *test_div_fq2 = fq_poly_init(test_div_pol2, pmod);
+
+	fq_poly_t *div_res = fq_poly_div(test_div_fq, test_div_fq2);
+	
+	printf("La division de :\n");
+	fq_poly_print(test_div_fq, 'X', stdout);
+	printf("\npar :\n");
+	fq_poly_print(test_div_fq2, 'X', stdout);
+	printf("\ndonne :\n");
+	fq_poly_print(div_res, 'X', stdout);
+	
+	fq_poly_t *verif2 = fq_poly_mul(test_div_fq2, div_res);
+	
+	printf("\n\nVérification :\nLe produit de :\n");
+	fq_poly_print(test_div_fq2,'X', stdout);
+	printf("\npar :\n");
+	fq_poly_print(div_res, 'X', stdout);
+	printf("\ndonne :\n");
+
+	fq_poly_print(verif2, 'X', stdout);
+
+
+	//###############################################################################################
+
+	printf("\n\n######### Test de is_gen_fq_inv ########\n");
+	//X^3+2x+1 irréductible sur F5[X]
+	uint64_t modulo2[6] = {1,0,0,0,4,1};
+	fp_poly_t *pmod2 = fp_poly_init(5, modulo2, carac);
+	uint64_t fq_p_tab[4]={2,1,1,4};
+	fp_poly_t *fq_p = fp_poly_init(3, fq_p_tab, carac);
+	fq_poly_t *fq_p1 = fq_poly_init(fq_p,pmod2);
+
+	fq_poly_print(fq_p1, 'X', stdout);
+	is_gen_fq_inv(fq_p1);
 
 
 	fp_poly_free(p);
@@ -216,6 +263,17 @@ int main(int agrc, char **argv)
 	fq_poly_free(test_inv_fq);
 	fq_poly_free(invert);
 	fq_poly_free(verif);
+
+
+	fp_poly_free(test_div_pol);
+	fp_poly_free(test_div_pol2);
+	fq_poly_free(test_div_fq);
+	fq_poly_free(test_div_fq2);
+	fq_poly_free(div_res);
+	fq_poly_free(verif2);
+
+	fp_poly_free(fq_p);
+	fp_poly_free(pmod2);
 
 	fprintf(stdout,"\n");
 	return 0;

@@ -178,7 +178,7 @@ fp_poly_t *fp_poly_sub(const fp_poly_t *p1,const fp_poly_t *p2){
 	if(diff[i] == 0){
 		//il faut déterminer le degré du res ici
 		i = 1;
-		while( diff[i] == 0 ){
+		while( diff[i] == 0 && i < deg_res){
 			i++;
 		}
 		deg_res -= i;
@@ -428,28 +428,29 @@ fq_poly_t *fq_poly_inv(const fq_poly_t *p){
 		fprintf(stderr, "0 n'a pas d'inverse\n");
 		return NULL;
 	}
-	uint64_t u0_tab[1] = {1};
-	uint64_t u1_tab[1] = {0};
+	uint64_t u0_tab[1] = {0};
+	uint64_t u1_tab[1] = {1};
 	fp_poly_t *u0 = fp_poly_init(0,u0_tab, p->poly->carac);
 	fp_poly_t *u1 = fp_poly_init(0,u1_tab, p->poly->carac);
 	fp_poly_t *u_tmp = NULL;
 
 	//Il faut faire une copie ici et non pas récupérer l'adresse, sinon on va libérer les zones mémoires qui les ocntiennent dans l'algorithme d'euclide
-	uint64_t r0_tab[p->poly->degre + 1 ];
-	memcpy(r0_tab, p->poly->coeffs, ( p->poly->degre + 1 ) * sizeof(uint64_t)  );
-	fp_poly_t *r0 = fp_poly_init( p->poly->degre, r0_tab, p->poly->carac );
+	
+	uint64_t r0_tab[p->mod->degre + 1 ];
+	memcpy(r0_tab, p->mod->coeffs, ( p->mod->degre + 1 ) * sizeof(uint64_t)  );
+	fp_poly_t *r0 = fp_poly_init( p->mod->degre, r0_tab, p->mod->carac );
 
 
-	uint64_t r1_tab[p->mod->degre + 1 ];
-	memcpy(r1_tab, p->mod->coeffs, ( p->mod->degre + 1 ) * sizeof(uint64_t)  );
-	fp_poly_t *r1 = fp_poly_init( p->mod->degre, r1_tab, p->mod->carac );
+	uint64_t r1_tab[p->poly->degre + 1 ];
+	memcpy(r1_tab, p->poly->coeffs, ( p->poly->degre + 1 ) * sizeof(uint64_t)  );
+	fp_poly_t *r1 = fp_poly_init( p->poly->degre, r1_tab, p->poly->carac );
 
 
 	fp_poly_t *r_tmp = NULL;
 	fp_poly_t *tmp2 = NULL;
 	fp_poly_t *q =NULL;
 	
-	while( (r1->degre != 0 ) && (r1->coeffs[0] != 0 )){
+	while( !( (r1->degre == 0 ) && (r1->coeffs[0] == 0 ))){
 		//q=r0/r1
 		fp_poly_div_euc(r0, r1, &q, NULL);
 
@@ -474,16 +475,16 @@ fq_poly_t *fq_poly_inv(const fq_poly_t *p){
 		fp_poly_free(q);
 	}
 	
-	if( u1->coeffs[0] != 1 ){
-		int64_t correc = inv_mod(u1->coeffs[0], u1->carac);
-		for(uint64_t i = 0; i <= u1->degre ; i++){
-			u1->coeffs[i] = ( u1->coeffs[i] * correc ) % u1->carac;
+	if( r0->coeffs[0] != 1 ){
+		int64_t correc = inv_mod(r0->coeffs[0], r0->carac);
+		for(uint64_t i = 0; i <= u0->degre ; i++){
+			u0->coeffs[i] = ( u0->coeffs[i] * correc ) % u0->carac;
 		}
 
 	}
 	
 
-	fq_poly_t *inv = fq_poly_init(u1, p->mod);
+	fq_poly_t *inv = fq_poly_init(u0, p->mod);
 
 	fp_poly_free(u0);
 	fp_poly_free(u1);
@@ -493,19 +494,62 @@ fq_poly_t *fq_poly_inv(const fq_poly_t *p){
 
 	return inv;
 }
-/*
-int64_t inv_mod(int64_t a, int64_t p){
-	int64_t u0 = 1, u1 = 0, r0 = a, r1 = p;
-	int64_t u_tmp, r_tmp, q;
-	while(r1 != 0){
-		q = r0 / r1;
-		r_tmp = r0;
-		u_tmp = u0;
-		r0 = r1;
-		u0 = u1;
-		r1 = r_tmp - q * r1;
-		u1 = u_tmp - q * u1;
+
+// p1/p2 dans Fq
+fq_poly_t *fq_poly_div(const fq_poly_t *p1, const fq_poly_t *p2){
+	if( ( p2->poly->degre == 0 ) && ( p2->poly->coeffs[0] == 0 ) ){
+		fprintf(stderr, "Il est impossible de diviser par 0\n");
+		return NULL;
 	}
-	return (u0 + p)%p;
+	fq_poly_t *inv = fq_poly_inv(p2);
+	fq_poly_t *quotient = fq_poly_mul(p1, inv);
+
+	fq_poly_free(inv);
+	return quotient;
 }
-*/
+
+
+uint64_t fast_pow(uint64_t n, uint64_t power){
+	uint64_t res = 1;
+	while(power){ //ie while power!=0
+		if( power & 1 ){ //power est impair
+			res = res * n;
+		}
+		n = n * n ;
+		power >>= 1;
+	}
+	return res;
+}
+
+int is_gen_fq_inv(const fq_poly_t *p){
+	if( p->poly->degre == 0 ){ //Si p appartient à Fp, il ne peut pas générer Fq
+		return 0;
+	}
+	uint64_t tab[p->poly->degre +1];
+	memcpy(tab, p->poly->coeffs, ( p->poly->degre + 1 ) * sizeof( uint64_t ) );
+	fp_poly_t *pow = fp_poly_init(p->poly->degre, tab, p->poly->carac);
+	fq_poly_t *power = fq_poly_init(pow, p->mod);
+	fq_poly_t *tmp = NULL;
+	if( power == NULL ){
+		fprintf(stderr, "Erreur initialisation fp_poly dans is_gen_fq_inv\n");
+		return -1;
+	}
+	uint64_t order = 1;
+	while( !( ( power->poly->degre == 0 ) && ( power->poly->coeffs[0] == 1 ) ) ){
+		tmp = fq_poly_mul( power , p );
+		fq_poly_free(power);
+		power = tmp;
+		order++;
+	}
+	fq_poly_free(power);
+	fp_poly_free(pow);
+
+	if( order == ( fast_pow(p->poly->carac, p->mod->degre) - 1 )  ){
+		fprintf(stdout,"\nest un générateur de Fq\n");
+		fprintf(stdout, "Ordre :%ld\n",order);
+		return 1;
+	}
+	printf("\nn'est pas un générateur de Fq\n");
+	fprintf(stdout, "Ordre :%ld\n",order);
+	return 0;
+}

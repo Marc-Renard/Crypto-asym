@@ -48,4 +48,10 @@ fq_poly_t *fq_poly_mul(const fq_poly_t *, const fq_poly_t *);
 
 fq_poly_t *fq_poly_inv(const fq_poly_t *);
 
+fq_poly_t *fq_poly_div(const fq_poly_t *, const fq_poly_t *);
+
+uint64_t fast_pow(uint64_t, uint64_t);
+
+int is_gen_fq_inv(const fq_poly_t *);
+
 #endif /*FP_POLY_H*/
