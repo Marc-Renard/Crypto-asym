@@ -225,7 +225,7 @@ int main(int agrc, char **argv)
 	//###############################################################################################
 
 	printf("\n\n######### Test de is_gen_fq_inv ########\n");
-	//X^3+2x+1 irréductible sur F5[X]
+	//X^5+4x+1 irréductible sur F5[X]
 	uint64_t modulo2[6] = {1,0,0,0,4,1};
 	fp_poly_t *pmod2 = fp_poly_init(5, modulo2, carac);
 	uint64_t fq_p_tab[4]={2,1,1,4};
@@ -235,6 +235,14 @@ int main(int agrc, char **argv)
 	fq_poly_print(fq_p1, 'X', stdout);
 	is_gen_fq_inv(fq_p1);
 
+	uint64_t fq_p_tab2[4]={2,3,2,4};
+	fp_poly_t *fq_test2 = fp_poly_init(3, fq_p_tab2, carac);
+	fq_poly_t *fq_p2 = fq_poly_init(fq_test2,pmod2);
+
+	printf("\n");
+
+	fq_poly_print(fq_p2, 'X', stdout);
+	is_gen_fq_inv(fq_p2);
 
 	fp_poly_free(p);
 	fp_poly_free(q);
@@ -273,7 +281,11 @@ int main(int agrc, char **argv)
 	fq_poly_free(verif2);
 
 	fp_poly_free(fq_p);
+	fq_poly_free(fq_p1);
 	fp_poly_free(pmod2);
+
+	fp_poly_free(fq_test2);
+	fq_poly_free(fq_p2);
 
 	fprintf(stdout,"\n");
 	return 0;

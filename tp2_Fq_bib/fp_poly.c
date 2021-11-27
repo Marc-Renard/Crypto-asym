@@ -25,15 +25,15 @@ void fp_poly_free(fp_poly_t* p)
 	return;
 }
 
-int fp_poly_print(fp_poly_t *p, char var, FILE * os){
+void fp_poly_print(const fp_poly_t *p, char var, FILE *os){
 	uint64_t deg = p->degre;
 	if( (deg == 0) && ( p->coeffs[0] == 0 )  ){ //poly == 0
 		fprintf(os, "Polynome identiquement nul :\n0\n\n");
-		return 0;
+		return ;
 	}
 	if( deg == 0 ){
 		fprintf(os, "%ld ", p->coeffs[0]);
-		return 0; 
+		return ; 
 	}
 	//Le terme de plaut haut degre n'a pas de + devant lui, c'est pourquoi il est traité à part
 	if( p->coeffs[0] == 1 ){
@@ -54,8 +54,7 @@ int fp_poly_print(fp_poly_t *p, char var, FILE * os){
 		if( p->coeffs[1] !=0 ){
 			fprintf(os," + %ld",p->coeffs[1] );
 		}
-		fprintf(os,"\n\n");
-		return 0;
+		return ;
 	}
 	for( int i = 1; i <= deg - 2; i++){
 		if( p->coeffs[i] ){ //ie coefficient non nul
@@ -75,7 +74,7 @@ int fp_poly_print(fp_poly_t *p, char var, FILE * os){
 	if( p->coeffs[deg] ){ // coefficient constant non nul
 		fprintf(os," + %ld", p->coeffs[deg]);
 	}
-	return 0;
+	return ;
 }
 
 //Multiplication de p par q
@@ -385,7 +384,7 @@ void fq_poly_free(fq_poly_t *p){
 	return;
 }
 
-void fq_poly_print(fq_poly_t *p, char var , FILE *os){
+void fq_poly_print(const fq_poly_t *p, char var , FILE *os){
 	fp_poly_print(p->poly, var, os);
 	fprintf(os, " MOD ");
 	fp_poly_print(p->mod, var, os);
@@ -501,6 +500,10 @@ fq_poly_t *fq_poly_div(const fq_poly_t *p1, const fq_poly_t *p2){
 		fprintf(stderr, "Il est impossible de diviser par 0\n");
 		return NULL;
 	}
+	if( !fp_poly_is_equal( p1->mod , p2->mod ) ){
+		fprintf(stderr, "Les polynômes ne sont pas dans le même corps\n");
+		return NULL;
+	}
 	fq_poly_t *inv = fq_poly_inv(p2);
 	fq_poly_t *quotient = fq_poly_mul(p1, inv);
 
@@ -544,12 +547,12 @@ int is_gen_fq_inv(const fq_poly_t *p){
 	fq_poly_free(power);
 	fp_poly_free(pow);
 
-	if( order == ( fast_pow(p->poly->carac, p->mod->degre) - 1 )  ){
-		fprintf(stdout,"\nest un générateur de Fq\n");
+	if( order == ( fast_pow(p->mod->carac, p->mod->degre) - 1 )  ){
+		fprintf(stdout,"\nest un générateur de F%ld*\n",fast_pow(p->mod->carac, p->mod->degre));
 		fprintf(stdout, "Ordre :%ld\n",order);
 		return 1;
 	}
-	printf("\nn'est pas un générateur de Fq\n");
+	printf("\nn'est pas un générateur de F%ld*\n",fast_pow(p->mod->carac, p->mod->degre));
 	fprintf(stdout, "Ordre :%ld\n",order);
 	return 0;
 }

@@ -22,7 +22,7 @@ fp_poly_t *fp_poly_init(uint64_t, uint64_t *, uint64_t);
 
 void fp_poly_free(fp_poly_t *);
 
-int fp_poly_print(fp_poly_t *,char ,FILE *);
+void fp_poly_print(const fp_poly_t *,char ,FILE *);
 
 fp_poly_t *fp_poly_mul(const fp_poly_t *,const fp_poly_t *);
 
@@ -40,7 +40,7 @@ fq_poly_t *fq_poly_init(const fp_poly_t *,const fp_poly_t *);
 
 void fq_poly_free(fq_poly_t *);
 
-void fq_poly_print(fq_poly_t *,char ,FILE *);
+void fq_poly_print(const fq_poly_t *,char ,FILE *);
 
 int fp_poly_is_equal(const fp_poly_t *, const fp_poly_t *);
 
