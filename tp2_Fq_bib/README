@@ -34,8 +34,8 @@ typedef struct{
 fq_poly_t est le type qui permet de représenter un élément de Fq, vu vomme polynôme du corps Fp[X] / P(X) avec P(X) irréductible.
 
 Un fq_poly_t se compose de 2 attributs:
- - Le polynôme en lui même (poly), un fp_poly_t
- - Le polynoôme P(X) utilisé pour l'extension de corps (mod), un fp_poly_t
+ - Le polynôme (poly), un fp_poly_t
+ - Le polynoôme P(X) utilisé pour l'extension de corps de Fp (mod), un fp_poly_t
  
 Remarques : Ces deux polynômes doivent avoir le même attibut "carac"
 
@@ -54,6 +54,8 @@ Fonction d'initialisation d'un fp_poly_t.
 
 Alloue la mémoire nécessaire pour la structure et pour le tableau de coefficients, initialise les attributs avec les paramètres donnés à la fonction.
 Elle renvoie le pointeur sur la structure.
+
+Remarque : le fp_poly_t résultant contiendra un pointeur vers une copie du tableau coeffs, ainsi coeffs pourra être modifié dans la suite du programme sans affecter le fp_poly_t.
 
 
                                -------------------------------
@@ -77,7 +79,7 @@ Affichage d'un fp_poly_t.
 Elle prend 3 paramètres :
  - fp_poly_t *p un pointeur vers le polynôme à afficher
  - char var un caractère ( souvent X )
- - FILE *os el fichier dans lequel afficher ce polynôme
+ - FILE *os le fichier dans lequel afficher le polynôme
  
                  --------------------------------------------------------------
                | fp_poly_t *fp_poly_mul(const fp_poly_t *p,const  fp_poly_t *q) |
@@ -118,7 +120,7 @@ Les deux polynômes doivent avoir le même attribut carac.
 
 Renvoie la différence des deux polynômes ( p1 - p2 ). Les coefficients sont modulo carac.
 
-Fonctionnement identique à l'adition, sauf que l'on ajoute l'opposé modulo carac des coefficient de p2.
+Fonctionnement identique à l'adition, sauf que l'on ajoute l'opposé modulo carac des coefficients de p2.
 
 Cette fonction réalise un fp_poly_init, il faudra donc penser à libérer la mémoire du polynôme retourné avant la fin du programme à l'aide d'un fp_poly_free.
 
@@ -142,9 +144,9 @@ Les deux polynômes a et b doivent avoir le même attribut carac.
 
 Algorithme de division euclidienne classique.
 
-Il est possible de récupérer au choix q et r, ou seulement l'un des deux. Si l'un des deux n'est pas désiré, il suffit de passer NULL comme paramètre pour celui-ci.
+Il est possible de récupérer au choix q et r, ou seulement l'un des deux. Si l'un des deux n'est pas désiré, il suffit de passer NULL comme argument pour celui-ci.
 
-Cette fonction réalise un ou deux fp_poly_init (en fonction des valeurs désirées ou non de q et r)), il faudra donc penser à libérer la mémoire du/des polynôme(s) retourné(s) avant la fin du programme à l'aide d'un fp_poly_free.
+Cette fonction réalise un ou deux fp_poly_init (en fonction des valeurs désirées ou non de q et r)), il faudra donc penser à libérer la mémoire du/des polynôme(s) généré(s) avant la fin du programme à l'aide de fp_poly_free.
 
 
                ------------------------------------------------------------------------
@@ -170,11 +172,12 @@ Les deux polynômes doivent avoir le même attribut carac.
 
 mod doit être un polynôme irréductible.
 
-Alloue la mémoire nécessaire pour la structure et pour le tableau de coefficients, initialise les attributs avec les paramètres donnés à la fonction.
+Alloue la mémoire nécessaire pour la structure et pour lee deux polynômes, initialise les attributs avec les paramètres donnés à la fonction.
 Elle renvoie le pointeur sur la structure.
 
 Remarque : même si le degré de p est supérieur au degré de mod, l'algorithme réalise un division euclienne et c'est le reste de cette division euclidienne qui deviendra l'attribut poly du fq_poly_t. Ainsi, dans un fq_poly_t, le degré de l'attribut poly est toujours inférieur au degré de l'attribut mod.
 
+Remarque : le fq_poly_t résultant contiendra deux pointeurs vers des copies de p et mod, ainsi p et mod pourront être modifiés dans la suite du programme sans affecter le fq_poly_t.
 
                                -------------------------------
                              | void fq_poly_free(fp_poly_t* p) |
@@ -197,7 +200,7 @@ Affichage d'un fq_poly_t.
 Elle prend 3 paramètres :
  - fp_poly_t *p un pointeur vers le polynôme à afficher
  - char var un caractère ( souvent X )
- - FILE *os el fichier dans lequel afficher ce polynôme
+ - FILE *os le fichier dans lequel afficher ce polynôme
  
 L'affichage se fait de la manière suivante :
                                       p->poly MOD p->mod
@@ -220,7 +223,7 @@ Renvoie 0 si les polynômes sont différents, et 1 s'ils sont égaux.
                   
 Multiplication de deux fq_poly_t.
 
-L'attribut mod de ces deux fq_poly_t doivent être identiques, pour tester cela on utilise la fonction fp_poly_is_equal.
+L'attribut mod de ces deux fq_poly_t doit être identique, pour tester cela on utilise la fonction fp_poly_is_equal.
 
 Réalise la multiplication des deux attributs poly (fp_poly_mul) puis renvoie le fq_poly_t dont l'attribut poly est le reste de la division euclienne du résultat précédent par l'attribut mod.
 
@@ -237,7 +240,9 @@ Algorithme d'Euclide étendu classique.
 
 L'attribut p->mod devant être irréductible, on obtient à la fin de l'aguritme d'Euclide étendu:
 		    p->mod * v0 + p->poly * u0 = d avec d un inversible de Fp
+
 Autrement dit p->poly * u0 = d MOD p->mod
+
 A l'aide de la fonction inv_mod, on calcule d^(-1) puis v' = v0 * d^(-1)
 
 On obtient alors p->poly * v' = p->moly * v0 * d^(-1) = d * d^(-1) = 1 MOD p->mod
