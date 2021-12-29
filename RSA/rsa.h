@@ -15,4 +15,8 @@ uint64_t rsa_encrypt(uint64_t clear_text, uint64_t pub_exp, uint64_t module );
 
 uint64_t rsa_decrypt(uint64_t cipher_text, uint64_t private_exp, uint64_t module );
 
+uint64_t rsa_sign(uint64_t clear_text, uint64_t private_exp, uint64_t module );
+
+uint64_t rsa_sign_verify(uint64_t sig, uint64_t pub_exp, uint64_t module );
+
 #endif /*RSA_H*/

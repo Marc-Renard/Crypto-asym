@@ -64,10 +64,34 @@ uint64_t OS2IP(uint8_t *OS, uint8_t len){
 }
 
 uint64_t rsa_encrypt(uint64_t clear_text, uint64_t pub_exp, uint64_t module ){
+	if(clear_text >= module){
+		fprintf(stderr, "Cleartext out of range\n");
+		return 0;
+	}
 	return exp_mod(clear_text, pub_exp, module);
 }
 
 uint64_t rsa_decrypt(uint64_t cipher_text, uint64_t private_exp, uint64_t module ){
+	if(cipher_text >= module){
+		fprintf(stderr, "Ciphertext out of range\n");
+		return 0;
+	}
 	return exp_mod(cipher_text, private_exp, module);
+}
+
+uint64_t rsa_sign(uint64_t clear_text, uint64_t private_exp, uint64_t module ){
+	if(clear_text >= module){
+		fprintf(stderr, "Message representative out of range\n");
+		return 0;
+	}
+	return exp_mod(clear_text, private_exp, module);
+}
+
+uint64_t rsa_sign_verify(uint64_t sig, uint64_t pub_exp, uint64_t module ){
+	if(sig >= module){
+		fprintf(stderr, "Signature out of range\n");
+		return 0;
+	}
+	return exp_mod(sig, pub_exp, module);
 }
 
