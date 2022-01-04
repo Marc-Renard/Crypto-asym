@@ -6,7 +6,29 @@
 
 int main(int argc, char **argv){
 
-	uint64_t a=27, b=45;
-	fprintf(stdout, "gcd(%ld,%ld)=%ld\n",a,b,gcd(a,b));
+	printf("\nTest de primalité de Fermat\n\n");
+	for(int i = 3; i < 30 ; i++){
+		if(isprime_Fermat(i,20)){
+			fprintf(stdout,"%d est premier\n",i);
+		}else{
+			fprintf(stdout,"%d n'est pas premier\n",i);
+		}
+	}
+
+	printf("\n##################################################\n\n");
+
+	printf("\nTest de primalité de Solovay-StraBen\n\n");
+	for(int i = 3; i < 30 ; i++){
+		if(isprime_Solovay_StraBen(i,20)){
+			fprintf(stdout,"%d est premier\n",i);
+		}else{
+			fprintf(stdout,"%d n'est pas premier\n",i);
+		}
+	}
+
+	printf("\n##################################################\n\n");
+
+	//Miler Rabin
+
 	return 0;
 }

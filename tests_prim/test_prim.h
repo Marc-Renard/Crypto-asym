@@ -9,9 +9,15 @@ uint64_t exp_mod(uint64_t n, uint64_t power, uint64_t mod);
 
 uint64_t gcd(uint64_t a, uint64_t b);
 
-uint64_t random_numb(uint64_t max);
+uint64_t random_numb(uint64_t min, uint64_t max);
 
 int isprime_Fermat(uint64_t n, uint8_t nb_tests);
+
+int parite(uint64_t a);
+
+int legendre(int64_t a,uint64_t p);
+
+int isprime_Solovay_StraBen(uint64_t n, uint8_t nb_tests);
 
 
 
