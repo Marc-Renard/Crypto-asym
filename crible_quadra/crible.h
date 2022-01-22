@@ -11,15 +11,11 @@ void mpz_init_table(mpz_t *tab, const int64_t size);
 
 void mpz_fill_table_S(mpz_t *tab, const int64_t size_A, const mpz_t n);
 
-void mpz_init_mat(mpz_t **mat, const int64_t nb_row, const int64_t nb_col );
+void init_mat(const uint64_t row, const uint64_t col, uint64_t mat[row][col] );
 
-void mpz_first_fill_mat(mpz_t **mat, const int64_t size_A, const mpz_t *tab_S, const mpz_t n);
+void print_mat(const int64_t row, const int64_t col, uint64_t mat[row][col] );
 
-void mpz_print_mat(const mpz_t **mat, const int64_t nb_row, const int64_t nb_col );
-
-void mpz_free_mat( mpz_t **mat, const int64_t nb_row, const int64_t nb_col );
-
-void set_beta_col_pi(mpz_t **tab, const mpz_t n , const int64_t size_A, const int64_t indice_pi );
+void set_beta_col_pi(const int64_t row, const int64_t col, uint64_t mat[row][col], mpz_t S[row], mpz_t S_t[row], mpz_t B[col], const mpz_t n);
 
 
 
