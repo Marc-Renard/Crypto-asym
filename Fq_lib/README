@@ -1,0 +1,288 @@
+Pour lancer le test :
+	make
+	./fp_poly_test
+
+
+##################################################################################################
+#                                        Les structures                                          #
+##################################################################################################
+
+                                           ---------
+                                         | fp_poly_t |
+                                           ---------
+typedef struct{
+	uint64_t degre;
+	uint64_t carac;  
+	uint64_t *coeffs;
+}fp_poly_t;
+
+fp_poly_t est le type qui permet de représenter un polynôme de Fp[x] (p premier)
+
+Un fp_poly_t se compose de 3 attributs:
+ - Son degré supérieur ou égal à 0 ( le degré du polynôme nul a été fixé à 0 );
+ - La caractéristique du corps dont sont issus les coefficients ( le p de Fp )
+ - Les coefficients du polynôme stockés dans un tableau
+ 
+                                           ---------
+                                         | fq_poly_t |
+                                           ---------
+typedef struct{
+	fp_poly_t *poly;
+	fp_poly_t *mod;
+}fq_poly_t;
+
+fq_poly_t est le type qui permet de représenter un élément de Fq, vu vomme polynôme du corps Fp[X] / P(X) avec P(X) irréductible.
+
+Un fq_poly_t se compose de 2 attributs:
+ - Le polynôme (poly), un fp_poly_t
+ - Le polynoôme P(X) utilisé pour l'extension de corps de Fp (mod), un fp_poly_t
+ 
+Remarques : Ces deux polynômes doivent avoir le même attibut "carac"
+
+
+
+
+##################################################################################################	
+#                                      Liste des fonctions                                       #
+##################################################################################################
+
+             -------------------------------------------------------------------------
+           | fp_poly_t *fp_poly_init(uint64_t degre, uint64_t* coeffs, uint64_t carac) |
+             -------------------------------------------------------------------------
+
+Fonction d'initialisation d'un fp_poly_t.
+
+Alloue la mémoire nécessaire pour la structure et pour le tableau de coefficients, initialise les attributs avec les paramètres donnés à la fonction.
+Elle renvoie le pointeur sur la structure.
+
+Remarque : le fp_poly_t résultant contiendra un pointeur vers une copie du tableau coeffs, ainsi coeffs pourra être modifié dans la suite du programme sans affecter le fp_poly_t.
+
+
+                               -------------------------------
+                             | void fp_poly_free(fp_poly_t* p) |
+                               -------------------------------
+                                 
+Libération de la mémoire d'un fp_poly_t.
+
+La fonction libère la mémoire du tableau de coefficients puis libère la mémoire de la structure elle même.
+
+Remarque : il faut appliquer cette fonction pour chaque fp_poly_t initialisé afin d'éviter 
+les fuites de mémoires.
+
+
+                     -----------------------------------------------------
+                   | void fp_poly_print(fp_poly_t *p, char var, FILE *os) |
+                     -----------------------------------------------------
+                        
+Affichage d'un fp_poly_t.
+
+Elle prend 3 paramètres :
+ - fp_poly_t *p un pointeur vers le polynôme à afficher
+ - char var un caractère ( souvent X )
+ - FILE *os le fichier dans lequel afficher le polynôme
+ 
+                 --------------------------------------------------------------
+               | fp_poly_t *fp_poly_mul(const fp_poly_t *p,const  fp_poly_t *q) |
+                 --------------------------------------------------------------
+
+Multiplication de deux fp_poly_t.
+
+Les deux polynômes doivent avoir le même attribut carac.
+
+Renvoie le polynôme nul si l'un des deux polynômes est nul.
+Sinon, elle réalise le développement du produit des deux polynômes. Les coefficients sont modulo carac.
+
+Cette fonction réalise un fp_poly_init, il faudra donc penser à libérer la mémoire du polynôme retourné avant la fin du programme à l'aide d'un fp_poly_free.
+
+
+                ---------------------------------------------------------------
+              | fp_poly_t *fp_poly_add(const fp_poly_t *p1,const fp_poly_t *p2) |
+                ---------------------------------------------------------------
+
+Addition de deux fp_poly_t.
+
+Les deux polynômes doivent avoir le même attribut carac.
+
+Renvoie la somme des deux polynômes. Les coefficients sont modulo carac.
+
+Cette fonction créé un tableau de taille max(p1->degre, p2->degre) + 1, remplit ce tableau par la droite avec les coefficients de p1, puis ajoute modulo carac les coefficients de p2 dans ce même tableau.
+
+Cette fonction réalise un fp_poly_init, il faudra donc penser à libérer la mémoire du polynôme retourné avant la fin du programme à l'aide d'un fp_poly_free.
+
+
+                ---------------------------------------------------------------
+              | fp_poly_t *fp_poly_sub(const fp_poly_t *p1,const fp_poly_t *p2) |
+                ---------------------------------------------------------------
+                    
+Soustraction de deux fp_poly_t.
+
+Les deux polynômes doivent avoir le même attribut carac.
+
+Renvoie la différence des deux polynômes ( p1 - p2 ). Les coefficients sont modulo carac.
+
+Fonctionnement identique à l'adition, sauf que l'on ajoute l'opposé modulo carac des coefficients de p2.
+
+Cette fonction réalise un fp_poly_init, il faudra donc penser à libérer la mémoire du polynôme retourné avant la fin du programme à l'aide d'un fp_poly_free.
+
+
+                              --------------------------------------
+                            | int64_t inv_mod(int64_t a, int64_t p) |
+                              --------------------------------------
+
+Calcul de l'inverse modulo p.
+
+Algorithme d'Euclide étendu.
+
+
+    ------------------------------------------------------------------------------------------
+  | void fp_poly_div_euc(const fp_poly_t *a, const fp_poly_t *b, fp_poly_t **q, fp_poly_t **r) |
+    ------------------------------------------------------------------------------------------
+
+Division euclidienne de deux fp_poly_t ( a = b * q + r ).
+
+Les deux polynômes a et b doivent avoir le même attribut carac.
+
+Algorithme de division euclidienne classique.
+
+Il est possible de récupérer au choix q et r, ou seulement l'un des deux. Si l'un des deux n'est pas désiré, il suffit de passer NULL comme argument pour celui-ci.
+
+Cette fonction réalise un ou deux fp_poly_init (en fonction des valeurs désirées ou non de q et r)), il faudra donc penser à libérer la mémoire du/des polynôme(s) généré(s) avant la fin du programme à l'aide de fp_poly_free.
+
+
+               ------------------------------------------------------------------------
+             | void fp_poly_gcd(const fp_poly_t *a,const fp_poly_t *b, fp_poly_t **gcd) |
+               ------------------------------------------------------------------------
+               
+PGCD de deux fp_poly_t.
+
+Les deux polynômes a et b doivent avoir le même attribut carac.
+
+Algorithme de PGCD recursif par divisions euclidiennes successives.
+
+Cette fonction réalise un fp_poly_init, il faudra donc penser à libérer la mémoire du polynôme retourné avant la fin du programme à l'aide d'un fp_poly_free.
+
+
+                 ----------------------------------------------------------------
+               | fq_poly_t *fq_poly_init(const fp_poly_t *p,const fp_poly_t *mod) |
+                 ----------------------------------------------------------------
+
+Initialisation d'un fq_poly_t.
+
+Les deux polynômes doivent avoir le même attribut carac.
+
+mod doit être un polynôme irréductible.
+
+Alloue la mémoire nécessaire pour la structure et pour lee deux polynômes, initialise les attributs avec les paramètres donnés à la fonction.
+Elle renvoie le pointeur sur la structure.
+
+Remarque : même si le degré de p est supérieur au degré de mod, l'algorithme réalise un division euclienne et c'est le reste de cette division euclidienne qui deviendra l'attribut poly du fq_poly_t. Ainsi, dans un fq_poly_t, le degré de l'attribut poly est toujours inférieur au degré de l'attribut mod.
+
+Remarque : le fq_poly_t résultant contiendra deux pointeurs vers des copies de p et mod, ainsi p et mod pourront être modifiés dans la suite du programme sans affecter le fq_poly_t.
+
+                               -------------------------------
+                             | void fq_poly_free(fp_poly_t* p) |
+                               -------------------------------
+                               
+Libération de la mémoire d'un fq_poly_t.
+
+La fonction libère la mémoire de ses deux attributs à l'aide de fp_poly_free, puis la mémoire de la structure elle même est libérée.
+
+Remarque : il faut appliquer cette fonction pour chaque fq_poly_t initialisé afin d'éviter 
+les fuites de mémoires.
+
+
+                     -----------------------------------------------------
+                   | void fq_poly_print(fq_poly_t *p, char var, FILE *os) |
+                     -----------------------------------------------------
+                        
+Affichage d'un fq_poly_t.
+
+Elle prend 3 paramètres :
+ - fp_poly_t *p un pointeur vers le polynôme à afficher
+ - char var un caractère ( souvent X )
+ - FILE *os le fichier dans lequel afficher ce polynôme
+ 
+L'affichage se fait de la manière suivante :
+                                      p->poly MOD p->mod
+
+
+                 --------------------------------------------------------------
+               | int fp_poly_is_equal(const fp_poly_t *p1, const fp_poly_t *p2) |
+                 --------------------------------------------------------------
+                  
+Teste si deux fp_poly_t sont égaux.
+
+Compare leur degré, puis leurs coéfficients.
+
+Renvoie 0 si les polynômes sont différents, et 1 s'ils sont égaux.
+
+
+                ----------------------------------------------------------------
+              | fq_poly_t *fq_poly_mul(const fq_poly_t *p1, const fq_poly_t *p2) |
+                ----------------------------------------------------------------
+                  
+Multiplication de deux fq_poly_t.
+
+L'attribut mod de ces deux fq_poly_t doit être identique, pour tester cela on utilise la fonction fp_poly_is_equal.
+
+Réalise la multiplication des deux attributs poly (fp_poly_mul) puis renvoie le fq_poly_t dont l'attribut poly est le reste de la division euclienne du résultat précédent par l'attribut mod.
+
+Cette fonction réalise un fq_poly_init, il faudra donc penser à libérer la mémoire du polynôme retourné avant la fin du programme à l'aide d'un fq_poly_free.
+
+
+                         ------------------------------------------
+                       | fq_poly_t *fq_poly_inv(const fq_poly_t *p) |
+                         ------------------------------------------
+                         
+Inverse d'un fq_poly_t (inverse dans Fq).
+
+Algorithme d'Euclide étendu classique.
+
+L'attribut p->mod devant être irréductible, on obtient à la fin de l'aguritme d'Euclide étendu:
+		    p->mod * v0 + p->poly * u0 = d avec d un inversible de Fp
+
+Autrement dit p->poly * u0 = d MOD p->mod
+
+A l'aide de la fonction inv_mod, on calcule d^(-1) puis v' = v0 * d^(-1)
+
+On obtient alors p->poly * v' = p->moly * v0 * d^(-1) = d * d^(-1) = 1 MOD p->mod
+
+Ainsi v' est l'inverse de p dans Fq.  	
+
+Cette fonction réalise un fq_poly_init, il faudra donc penser à libérer la mémoire du polynôme retourné avant la fin du programme à l'aide d'un fq_poly_free.
+
+
+                ----------------------------------------------------------------
+              | fq_poly_t *fq_poly_div(const fq_poly_t *p1, const fq_poly_t *p2) |
+                ----------------------------------------------------------------
+
+Division dans Fq (p1/p2).
+
+p2->poly doit être non nul.
+
+p1 et p2 doivent avoir le même attribut mod, sinon ils ne vivent pas dans le même corps.
+
+
+L'algorithme réalise la multiplication de p1 par l'inverse de p2.
+
+Cette fonction réalise un fq_poly_init, il faudra donc penser à libérer la mémoire du polynôme retourné avant la fin du programme à l'aide d'un fq_poly_free.
+
+
+                        ---------------------------------------------
+                      | uint64_t fast_pow(uint64_t n, uint64_t power) |
+                        ---------------------------------------------
+                        
+Exponentiation rapide d'entier (n^power)
+
+
+                             -------------------------------------
+                           | int is_gen_fq_inv(const fq_poly_t *p) |
+                             -------------------------------------
+
+Teste si un élément de Fq est un générateur de Fq*.
+
+On cherche l'ordre de p par multiplications successives par p.
+
+L'algorithme calcule l'ordre de Fq*, (p->mod->carac)^(p->mod->degre) - 1 , à l'aide de fast_pow. 
+ - Si l'orde de p correspond à l'orde de Fq* alors p est un générateur de Fq* et la fonction renvoie 1
+ - Sinon p n'est pas un générateur de Fq* et la fonction renvoie 0 
