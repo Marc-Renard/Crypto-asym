@@ -1,16 +1,17 @@
 CC = gcc
-CFLAGS = -I ../Fq_lib -g -Wall #-O3
+CFLAGS = -I . -g -Wall #-O3
 
 .SUFFIXES: .c .o
 
-PRGS = el_gamal_test
+PRGS = elgamal_test
 
 all:\
 	$(PRGS)
 
-el_gamal_test:\
-	el_gamal_test.o el_gamal.o ../Fq_lib/fp_poly.o
-	$(CC) el_gamal_test.o el_gamal.o ../Fq_lib/fp_poly.o -o $@
+
+elgamal_test:\
+	elgamal_test.o elgamal.o fp_poly.o
+	$(CC) elgamal_test.o elgamal.o fp_poly.o -o $@
 
 .c.o: \
 	$*.h $*.c
