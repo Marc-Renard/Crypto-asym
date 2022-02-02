@@ -117,3 +117,59 @@ int isprime_Solovay_StraBen(uint64_t n, uint8_t nb_tests){
 	}
 	return PRIME;
 }
+
+
+uint8_t testMillerRabin(uint64_t a,uint64_t n){
+    if(n==2){
+        return 1;
+    }
+    if(!(n&1)){
+        return 0;
+    }
+
+	uint64_t s = 0, t = n - 1 ;
+	while( !(t & 1) ){
+		t >>= 1;
+		s++;
+	}
+	//n-1 = 2^s*t
+
+    //int b=expmod3(a,t,n);
+	uint64_t b = exp_mod(a,t,n);
+    if(b==1){
+        return 1;
+    }
+    for(uint64_t i = 0 ; i < s ; i++){
+        if(b == n-1){
+            return 1;
+        }else if(b==1){
+            return 0;
+        }else{
+            b = exp_mod(b, 2, n);
+        }
+    }
+    return 0;
+}
+
+uint8_t isprime_Miller_Rabin(uint64_t n, uint64_t nb_tests){
+	if( n == 2 ){
+		//fprintf(stdout, "2 est premier\n");
+		return 1;
+	}
+    if( !( n & 1 )){
+        //printf("%ld est pair, il n'est pas premier\n",n);
+        return 0;
+    }
+    uint8_t res;
+    uint64_t a;
+    for(uint64_t i = 0 ; i < nb_tests ; i++ ){
+        a = random_numb(1, n - 1);
+        res = testMillerRabin( a , n );
+        if(res == 0){
+            //printf("%ld n'est pas premier\n",n);
+            return 0;
+        }
+    }
+    //printf("%ld a passe %ld tests de Miller-Rabin, il y a donc une forte probabilite qu'il soit premier\n",n,nb_tests);
+    return 1;
+}

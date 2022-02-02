@@ -19,6 +19,9 @@ int legendre(int64_t a,uint64_t p);
 
 int isprime_Solovay_StraBen(uint64_t n, uint8_t nb_tests);
 
+uint8_t testMillerRabin(uint64_t a,uint64_t n);
+
+uint8_t isprime_Miller_Rabin(uint64_t n, uint64_t nb_tests);
 
 
 #endif /* TEST_PRIM_H */
