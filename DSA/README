@@ -1,0 +1,5 @@
+Pour créer l'exécutable:
+	entrer make dans le dossier courant.
+
+Pour lancer le test :
+	entrer ./dsa_test
