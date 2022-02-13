@@ -26,9 +26,9 @@ int parite(uint64_t a){
 	return compteur;
 }
 
-int legendre(int64_t a,uint64_t p){
+int jacobi(int64_t a,uint64_t p){
     if(a<0){
-        return(legendre(a+p,p));
+        return(jacobi(a+p,p));
     }
     if(a==1){
         return 1;
@@ -42,10 +42,10 @@ int legendre(int64_t a,uint64_t p){
     if(a%2==0){
     	// p^2-1 mod 8 = +- 1 <=> p^2-1 & 0b111 = 0b001 ou 0b111 soit parite(p^2-1 & 0b111) = 1
     	// p^2-1 mod 8 = +- 3 <=> p^2-1 & 0b111 = 0b101 ou 0b011 soit parite(p^2-1 & 0b111) = 0
-        return((legendre(a/2,p))*(-1 + 2 * parite( p & 0b111 ) )); // (-1)^( (p^2-1)/8 )
+        return((jacobi(a/2,p))*(-1 + 2 * parite( p & 0b111 ) )); // (-1)^( (p^2-1)/8 )
     }else{
     	//On ne doit multiplier par -1 que si a = p = 3 mod 4 soit : les deux derniers bits de a et p sont tous des 1
-        return((legendre(p%a,a))*(1 - 2 * ( ( a & 1 ) * ( ( a >> 1 ) & 1 ) *  ( p & 1 ) * ( ( p >> 1 ) & 1 )  )));
+        return((jacobi(p%a,a))*(1 - 2 * ( ( a & 1 ) * ( ( a >> 1 ) & 1 ) *  ( p & 1 ) * ( ( p >> 1 ) & 1 )  )));
     }
 }
 
@@ -70,7 +70,7 @@ uint64_t sqrt_Shanks_Tonelli(uint64_t a, uint64_t p){
 	if( !a ){ //a == 0
 		return 0;
 	}
-	if( !(exp_bin_mod( a, (p - 1)>>1 , p  ) == 1) ){ //Jacobi (On ne peut pas se fier à Legendre pour détecter un résidu quadratique)
+	if( !(exp_bin_mod( a, (p - 1)>>1 , p  ) == 1) ){ //Jacobi (On ne peut pas se fier à jacobi pour détecter un résidu quadratique)
 		fprintf(stderr, "%ld n'est pas un résidu quadratique modulo %ld\n",a ,p );
 		return 0;
 	}
@@ -84,10 +84,10 @@ uint64_t sqrt_Shanks_Tonelli(uint64_t a, uint64_t p){
 	}
 	// à cette étape on a p - 1 = 2^alpha * s avec s impair
 
-	//On cherche un résidu non quadratique, on peut cette fois se fier à Legendre pour détecter un résidu non quadratique
+	//On cherche un résidu non quadratique, on peut cette fois se fier à jacobi pour détecter un résidu non quadratique
 	int n = 2;
 	for( n = 2 ; n < p ; n++ ){
-		if(legendre(n,p) == -1){
+		if(jacobi(n,p) == -1){
 			break;
 		}
 	}

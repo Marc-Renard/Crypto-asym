@@ -7,7 +7,7 @@
 
 uint64_t exp_bin_mod(uint64_t n, uint64_t power, uint64_t mod);
 
-int legendre(int64_t a,uint64_t p);
+int jacobi(int64_t a,uint64_t p);
 
 int parite(uint64_t a);
 
